@@ -1,0 +1,9 @@
+{
+  "port": 3000,
+  "localhost": "localhost",
+  "username": "admin",
+  "userpassword": "admin",
+  "userstring": "ycubcjd",
+  "dbname": "nodeDB",
+  "clustername": "Valtech"
+}

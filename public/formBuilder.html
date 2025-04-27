@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dynamic Form Field Builder</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
+  <style>
+    
+      body{
+        background: linear-gradient(to left, #C9D6FF, #E2E2E2);
+
+      }
+      .btn-logout{
+        margin-left: 1254px;
+      }
+      .bg-nav{
+        background: linear-gradient(to right, #C9D6FF, #E2E2E2);
+      }
+
+      .border{
+        border-radius: 10px;
+        border: 2px solid rgb(125, 183, 250) !important;
+      }
+
+      .form-control {
+        background-color: #C9D6FF;
+        
+      }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light bg-nav">
+    <a href="#"><img src="images/logo.png" width="80px" alt="" />
+      
+    </a>
+
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item active">
+          <a class="nav-link" href="index.html"
+            >Home <span class="sr-only">(current)</span></a
+          >
+        </li>
+
+        <li class="nav-item active">
+          <a class="nav-link" href="#"
+            >Userlist <span class="sr-only">(current)</span></a
+          >
+        </li>
+
+        <li class="nav-item">
+          &nbsp;&nbsp;
+          <button
+            type="button"
+            class="btn btn-primary btn-logout">
+           Logout
+          </button>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+
+  <div class="container mt-5">
+    <h2>Create Form Fields</h2>
+    <form id="field-builder">
+      <div id="field-builder-container"></div>
+
+      <button type="submit" class="btn btn-primary mt-3 w-100">Save Form Fields</button>
+    </form>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const fieldCount = parseInt(urlParams.get('fields'), 10) || 1;
+    const formTitle = urlParams.get('formTitle') || 'Untitled Form';
+
+    const fieldBuilderContainer = document.getElementById("field-builder-container");
+
+    function createFieldBuilder(index) {
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("border", "p-3", "mb-4");
+      wrapper.innerHTML = `
+        <h5>Field ${index + 1}</h5>
+
+        <label>Question/Label</label>
+        <input type="text" class="form-control mt-2 field-question" placeholder="Enter question for this field" required />
+
+        <label class="mt-2">Field Type</label>
+        <select class="form-control field-type" data-index="${index}">
+          <option value="text">Text</option>
+          <option value="email">Email</option>
+          <option value="number">Number</option>
+          <option value="tel">Phone</option>
+          <option value="dropdown">Dropdown</option>
+          <option value="radio">Radio</option>
+        </select>
+
+        <input type="text" class="form-control mt-2 field-name" placeholder="Name" required />
+        <input type="text" class="form-control mt-2 field-id" placeholder="ID" />
+        <input type="text" class="form-control mt-2 field-class" placeholder="Class" />
+        <input type="text" class="form-control mt-2 field-placeholder" placeholder="Placeholder" />
+
+        <select class="form-control mt-2 field-validation">
+          <option value="">No Validation</option>
+          <option value="required">Required</option>
+          <option value="email">Email</option>
+          <option value="number">Number</option>
+          <option value="tel">Phone</option>
+        </select>
+
+        <input type="text" class="form-control mt-2 field-options" placeholder="Options (comma-separated)" style="display:none;" />
+      `;
+
+      fieldBuilderContainer.appendChild(wrapper);
+    }
+
+    for (let i = 0; i < fieldCount; i++) {
+      createFieldBuilder(i);
+    }
+
+    fieldBuilderContainer.addEventListener("change", function (e) {
+      if (e.target.classList.contains("field-type")) {
+        const wrapper = e.target.closest("div");
+        const optionsInput = wrapper.querySelector(".field-options");
+        const val = e.target.value;
+        optionsInput.style.display = (val === "dropdown" || val === "radio") ? "block" : "none";
+      }
+    });
+
+    document.getElementById("field-builder").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const allFields = document.querySelectorAll("#field-builder-container > div");
+      const formData = [];
+
+      allFields.forEach(wrapper => {
+        const question = wrapper.querySelector(".field-question").value;
+        const type = wrapper.querySelector(".field-type").value;
+        const name = wrapper.querySelector(".field-name").value;
+        const id = wrapper.querySelector(".field-id").value;
+        const className = wrapper.querySelector(".field-class").value;
+        const placeholder = wrapper.querySelector(".field-placeholder").value;
+        const validation = wrapper.querySelector(".field-validation").value;
+        const optionsRaw = wrapper.querySelector(".field-options").value;
+        const options = optionsRaw.split(',').map(opt => opt.trim()).filter(Boolean);
+
+        const field = {
+          question: question,
+          type: type,
+          name: name,
+          id: id,
+          class: className,
+          placeholder: placeholder,
+          validation: validation,
+        };
+
+
+        if ((type === "dropdown" || type === "radio") && options.length > 0) {
+          field.options = options;
+        }
+
+        formData.push(field);
+      });
+
+      const formObj = {
+        formTitle: formTitle,
+        fieldCount: fieldCount,
+        formData: formData
+      };
+
+      console.log("Form data being sent:", formObj);
+
+      fetch('/admin/formData', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formObj)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("Success:", data);
+        alert('Form fields saved successfully!');
+  
+        document.getElementById("field-builder").reset();
+        document.getElementById("field-builder-container").innerHTML = "";
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving form fields');
+      });
+    });
+  </script>
+
+</body>
+</html>

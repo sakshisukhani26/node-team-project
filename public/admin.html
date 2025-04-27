@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7"
+      crossorigin="anonymous"
+    />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+   
+
+    <style>
+        body{
+            background: linear-gradient(to left, #C9D6FF, #E2E2E2);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            
+          }
+      .card-size {
+        /* margin: auto; */
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-left: 10px;
+        margin-top: 10px;
+        gap: 15px;
+        justify-content: center;
+      }
+      .btn-place {
+        margin-left: 1230px;
+      }
+      .btn-logout{
+        margin: auto;
+      }
+      .bg-nav{
+        background: linear-gradient(to right, #C9D6FF, #E2E2E2);
+      }
+
+      .card-hover:hover {
+        transform: scale(1.03);
+        transition: 0.3s ease;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+  
+    <nav class="navbar navbar-expand-lg navbar-light bg-light bg-nav">
+      <a href="#"><img src="images/logo.png" width="80px" alt="" />
+        
+      </a>
+
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item active">
+            <a class="nav-link" href="index.html"
+              >Home <span class="sr-only">(current)</span></a
+            >
+          </li>
+
+          <li class="nav-item active">
+            <a class="nav-link" href="userlist.html"
+              >Userlist <span class="sr-only">(current)</span></a
+            >
+          </li>
+
+         
+
+          <li class="nav-item">
+            <button
+              type="button"
+              class="btn btn-primary btn-place"
+              data-bs-toggle="modal"
+              data-bs-target="#exampleModal">
+             Create Template
+            </button>
+
+
+
+            <div
+              class="modal fade"
+              id="exampleModal"
+              tabindex="-1"
+              aria-labelledby="exampleModalLabel"
+              aria-hidden="true"
+            >
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">
+                      Add Details
+                    </h1>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
+                    ></button>
+                  </div>
+                  <form id="field-selection-form">
+                    <div class="modal-body">
+
+                      <label for="form-title">Title:</label><br>
+                      <input type="text" id="form-title" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+                     
+                      <label for="field-count">No of Fields:</label><br>
+
+                      <select class="form-select" id="field-count" name="field-count" aria-label="Default select example">
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                          <option value="4">4</option>
+                          <option value="5">5</option>
+                          <option value="6">6</option>
+                        </select>
+                    </div>
+                  
+
+                  
+                  <div class="modal-footer">
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      data-bs-dismiss="modal">
+                      Close
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                      Next
+                    </button>
+                  </div>
+                </form>
+                </div>
+              </div>
+            </div>
+          </li>
+
+
+          <li class="nav-item">
+            &nbsp;&nbsp;
+            <button
+              type="button"
+              class="btn btn-primary btn-logout">
+             Logout
+            </button>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <br />
+    <h1 style="text-align: center">Admin Dashboard</h1>
+    <br />
+    <div class="card-size" id="allCards">
+    </div>
+
+    <script>
+
+
+    function getData(){
+            fetch("/fdata")
+            .then((raw) => {
+              return raw.json();
+              console.log(raw);
+              
+            })
+            .then((dbdata) => {
+              dbdata.forEach((val) => {
+                document.getElementById("allCards").innerHTML += `
+                  <div class="card card-hover" style="width: 18rem; cursor: pointer;" data-id="${val._id}">
+                  <img class="card-img-top" src="images/form.png" alt="Card image cap" width="5px" height="250px" />
+                  <div class="card-body">
+                    <h5 class="card-title">${val.formTitle}</h5>
+                    <p class="card-text">
+                    This is form templates
+                    </p>
+                    <a href="#" class="btn btn-primary">Edit</a>
+                    <button class="btn btn-primary delete-btn" data-id="${val._id}">Delete</button>
+                  </div>
+                </div>`;
+              });
+
+              // container.appendChild(card);
+              deleteCards();
+              cardClickRedirect();
+
+
+            }).catch(err => {
+              console.log("Error fetching data", err);
+            });
+      }
+      getData();
+
+      function cardClickRedirect(){
+        document.querySelectorAll('.card-hover').forEach(card => {
+          card.addEventListener('click', function(e){
+            if (e.target.classList.contains('edit-btn') || e.target.classList.contains('delete-btn')) {
+              return;
+            }
+            
+            const formId = this.getAttribute('data-id');
+            console.log("Redirecting to response page:", formId);
+            window.location.href = `/userResponses.html?formId=${formId}`;
+          });
+        });
+      }
+
+
+      function deleteCards(){
+          document.querySelectorAll('.delete-btn').forEach(btn => {
+              btn.addEventListener('click', function(){
+                  const id = this.getAttribute('data-id');
+                  console.log("Deleting ID:", id); 
+                  
+                  fetch(`/dform/${id}`, {   
+                      method: "DELETE",
+                  })
+                  .then(res => res.json())
+                  .then(data => {
+                      alert(data.message);
+                      this.closest('.card').remove();
+                  })
+                  .catch((error) => console.log("Error", error));
+              });
+          });
+      }
+     
+
+
+
+       document.getElementById('field-selection-form').addEventListener('submit', function(event) {
+        console.log("inside the function");
+        
+            event.preventDefault(); // Prevent form submission
+            const fieldCount = document.getElementById('field-count').value;
+            const formTitle = document.getElementById('form-title').value;
+            console.log(formTitle);
+            
+            // Redirect to the next page with the selected field count
+            window.location.href = `/form?fields=${fieldCount}&formTitle=${formTitle}`;
+
+            // window.location.href = `/form?fields=${fieldCount}&formTitle=${formTitle}`;
+        });
+    </script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

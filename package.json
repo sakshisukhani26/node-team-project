@@ -8,7 +8,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
@@ -18,5 +17,14 @@
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "mongoose": "^8.14.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sakshisukhani26/node-team-project.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sakshisukhani26/node-team-project/issues"
+  },
+  "homepage": "https://github.com/sakshisukhani26/node-team-project#readme",
+  "description": ""
 }

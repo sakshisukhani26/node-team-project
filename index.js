@@ -19,7 +19,12 @@ app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
 // let url = `mongodb+srv://${config.username}:${config.userpassword}@${config.dbname}.${config.userstring}.mongodb.net/${config.dbname}?retryWrites=true&w=majority&appName=Valtech`;
-let url = `mongodb+srv://sakshisukhani26:sakshi2601@valtech.j2mb7h2.mongodb.net/adminDB?retryWrites=true&w=majority&appName=valtech`;
+// let url = `mongodb+srv://sakshisukhani26:sakshi2601@valtech.j2mb7h2.mongodb.net/adminDB?retryWrites=true&w=majority&appName=valtech`;
+
+let url = `mongodb+srv://aesha:valtechdb@valtechpracticedb.zhyompe.mongodb.net/formDB?retryWrites=true&w=majority&appName=valtechpracticedb`;
+
+
+
 mongoose
   .connect(url)
   .then(() => console.log("DB Connected"))

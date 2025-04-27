@@ -66,7 +66,7 @@
           <button
             type="button"
             class="btn btn-primary btn-logout">
-           Logout
+            <a style="color: white;" href="/logout">Logout</a>
           </button>
         </li>
       </ul>
@@ -193,8 +193,9 @@
       })
       .then(response => response.json())
       .then(data => {
+        window.location = "admin.html";
         console.log("Success:", data);
-        alert('Form fields saved successfully!');
+        // alert('Form fields saved successfully!');
   
         document.getElementById("field-builder").reset();
         document.getElementById("field-builder-container").innerHTML = "";

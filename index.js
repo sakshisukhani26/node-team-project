@@ -64,7 +64,7 @@ const Form = mongoose.model("Form", FormSchema);
 const UserAnswer = mongoose.model("UserAnswer", UserFormData);
 
 app.get("/", (req, res) => {
-  res.render("index", { user: req.session.user });
+  res.render("index", { user: req.session.user , message: null});
 });
 
 app.post("/signup", async (req, res) => {
@@ -72,7 +72,9 @@ app.post("/signup", async (req, res) => {
 
   try {
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.send("User already exists");
+    if (existingUser) {
+      return res.render("index", { user: null, message: "User already exists" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({
@@ -84,10 +86,14 @@ app.post("/signup", async (req, res) => {
     await user.save();
 
     req.session.user = user;
-    res.redirect("/dashboard");
+    if (req.session.user.email === "admin@gmail.com") {
+      res.redirect("/admin");
+    } else {
+      res.redirect("/dashboard");
+    }
   } catch (err) {
     console.error(err);
-    res.send("Error signing up");
+    res.render("index", { user: null, message: "Error signing up" });
   }
 });
 
@@ -96,20 +102,24 @@ app.post("/login", async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.send("User not found");
+    if (!user) {
+      return res.render("index", { user: null, message: "User not found" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.send("Invalid credentials");
+    if (!isMatch) {
+      return res.render("index", { user: null, message: "Invalid credentials" });
+    }
 
     req.session.user = user;
-    if (user.email === "admin@gmail.com") {
+    if (req.session.user.email === "admin@gmail.com") {
       res.redirect("/admin");
     } else {
       res.redirect("/dashboard");
     }
   } catch (err) {
     console.error(err);
-    res.send("Login error");
+    res.render("index", { user: null, message: "Login error" });
   }
 });
 
@@ -121,7 +131,11 @@ app.get("/logout", (req, res) => {
 
 app.get("/dashboard", (req, res) => {
   if (!req.session.user) return res.redirect("/");
-  res.render("dashboard", { user: req.session.user });
+  if (req.session.user.email === "admin@gmail.com") {
+    res.redirect("/admin");
+  } else {
+    res.render("dashboard", { user: req.session.user });
+  }
 });
 
 app.get("/api/forms", async (req, res) => {
@@ -157,8 +171,8 @@ app.post("/submit-form", async (req, res) => {
     });
 });
 
-// admin section
 
+// admin section
 app.get("/admin", (req, res) => {
   if (!req.session.user) return res.redirect("/");
   if (req.session.user.email !== "admin@gmail.com")
@@ -221,8 +235,6 @@ app.get('/responses/:formId', async (req, res) => {
   try {
       const formId = req.params.formId;
       console.log("Getting responses for form:", formId);
-
-      // Assuming you store filled forms in a "Submissions" collection
       const submissions = await UserAnswer.find({ formId: formId });
 
       res.json(submissions);
@@ -233,7 +245,7 @@ app.get('/responses/:formId', async (req, res) => {
 });
 
 
-// Listening
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });

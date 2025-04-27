@@ -8,98 +8,190 @@
     />
     <style>
       body {
-        background: linear-gradient(to right, #e66465, #9198e5);
+        background: linear-gradient(to left, #b1c1f7, #9f9e9e);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       }
       .card {
-        margin-top: 100px;
+        width: 100%;
+        max-width: 800px;
+        padding: 30px 25px;
+        border: none;
+        display: flex;
+        flex-direction: row;
+        gap: 50px;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      }
+      .logsign {
+        margin-top: 40px;
       }
       .btn-toggle {
-        margin: 10px;
+        margin: 10px 5px;
+        width: 120px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 30px;
+      }
+      .form-control {
+        border-radius: 12px;
+        font-size: 15px;
+        padding: 12px 15px;
+      }
+      .btn-submit {
+        margin-top: 10px;
+        padding: 10px;
+        font-size: 17px;
+        border-radius: 25px;
+        font-weight: 600;
+      }
+      h2 {
+        font-size: 30px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      .text-center h2 {
+        color: #fff;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+      }
+      a.btn {
+        font-size: 16px;
+        padding: 10px 20px;
+        border-radius: 25px;
+      }
+
+      .btn-toggle.active {
+        background-color: #0d6efd !important;
+        color: white !important;
+      }
+      .btn-toggle.inactive {
+        background-color: #6c757d !important;
+        color: white !important;
       }
     </style>
   </head>
   <body>
+    <% if (message) { %>
+    <script>
+      alert("<%= message %>");
+    </script>
+    <% } %>
     <div class="container">
       <% if (user) { %>
       <div class="text-center text-white mt-5">
         <h2>Welcome back, <%= user.firstName %>!</h2>
         <a class="btn btn-light m-2" href="/dashboard">Go to Dashboard</a>
-        <a class="btn btn-danger m-2" href="/logout">Logout</a>
+        <a class="btn btn-primary m-2" href="/logout">Logout</a>
       </div>
       <% } else { %>
-      <div class="card mx-auto shadow p-4" style="max-width: 400px">
-        <div class="text-center">
-          <button class="btn btn-primary btn-toggle" onclick="showSignup()">
+
+      <div class="card mx-auto">
+        <img
+          src="/images/loginbgimage.png"
+          alt="login"
+          width="400px"
+          height="400px"
+        />
+        <div class="text-center mb-4 logsign">
+          <button
+            id="signupToggle"
+            class="btn btn-toggle active"
+            onclick="showSignup()"
+          >
             Sign up
           </button>
-          <button class="btn btn-secondary btn-toggle" onclick="showLogin()">
+          <button
+            id="loginToggle"
+            class="btn btn-toggle inactive"
+            onclick="showLogin()"
+          >
             Log in
           </button>
+          <form id="signupForm" action="/signup" method="POST">
+            <input
+              type="text"
+              name="firstName"
+              class="form-control my-2"
+              placeholder="First name"
+              required
+            />
+            <input
+              type="text"
+              name="lastName"
+              class="form-control my-2"
+              placeholder="Last name"
+              required
+            />
+            <input
+              type="email"
+              name="email"
+              class="form-control my-2"
+              placeholder="Email address"
+              required
+            />
+            <input
+              type="password"
+              name="password"
+              class="form-control my-2"
+              placeholder="Password"
+              required
+            />
+            <button type="submit" class="btn btn-success w-100 btn-submit">
+              Sign up
+            </button>
+          </form>
+
+          <form
+            id="loginForm"
+            action="/login"
+            method="POST"
+            style="display: none"
+          >
+            <input
+              type="email"
+              name="email"
+              class="form-control my-2"
+              placeholder="Email address"
+              required
+            />
+            <input
+              type="password"
+              name="password"
+              class="form-control my-2"
+              placeholder="Password"
+              required
+            />
+            <button type="submit" class="btn btn-success w-100 btn-submit">
+              Log in
+            </button>
+          </form>
         </div>
-
-        <form id="signupForm" action="/signup" method="POST">
-          <input
-            type="text"
-            name="firstName"
-            class="form-control my-2"
-            placeholder="First name"
-            required
-          />
-          <input
-            type="text"
-            name="lastName"
-            class="form-control my-2"
-            placeholder="Last name"
-            required
-          />
-          <input
-            type="email"
-            name="email"
-            class="form-control my-2"
-            placeholder="Email address"
-            required
-          />
-          <input
-            type="password"
-            name="password"
-            class="form-control my-2"
-            placeholder="Password"
-            required
-          />
-          <button type="submit" class="btn btn-success w-100">Sign up</button>
-        </form>
-
-        <form
-          id="loginForm"
-          action="/login"
-          method="POST"
-          style="display: none"
-        >
-          <input
-            type="email"
-            name="email"
-            class="form-control my-2"
-            placeholder="Email address"
-            required
-          />
-          <input
-            type="password"
-            name="password"
-            class="form-control my-2"
-            placeholder="Password"
-            required
-          />
-          <button type="submit" class="btn btn-primary w-100">Log in</button>
-        </form>
       </div>
+
       <script>
         function showSignup() {
           document.getElementById("signupForm").style.display = "block";
           document.getElementById("loginForm").style.display = "none";
+
+          document.getElementById("signupToggle").classList.add("active");
+          document.getElementById("signupToggle").classList.remove("inactive");
+          document.getElementById("loginToggle").classList.remove("active");
+          document.getElementById("loginToggle").classList.add("inactive");
         }
         function showLogin() {
           document.getElementById("signupForm").style.display = "none";
           document.getElementById("loginForm").style.display = "block";
+
+          document.getElementById("signupToggle").classList.remove("active");
+          document.getElementById("signupToggle").classList.add("inactive");
+          document.getElementById("loginToggle").classList.add("active");
+          document.getElementById("loginToggle").classList.remove("inactive");
         }
       </script>
       <% } %>

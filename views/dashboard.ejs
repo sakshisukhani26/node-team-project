@@ -2,21 +2,35 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Dashboard</title>
+    <title>User Dashboard</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+
     <style>
       body {
-        background: linear-gradient(to right, #e66465, #9198e5);
-        color: white;
-        padding: 30px;
+        background: linear-gradient(to left, #b1c1f7, #9f9e9e);
+        color: #fff;
       }
 
-      h1,
-      h2 {
-        text-align: center;
+      .navbar-custom {
+        background: linear-gradient(to right, #c9d6ff, #e2e2e2);
+        border-bottom: 1px solid #b5b5b5;
+        padding: 0 30px;
+      }
+
+      .welcome-text {
+        font-weight: bold;
+        font-size: 1.25rem;
+        color: #333;
+      }
+      .formsContainer {
+        margin-top: 80px;
+      }
+
+      .form-card {
+        margin-top: 100px;
       }
 
       .form-preview {
@@ -24,180 +38,218 @@
         overflow-y: auto;
       }
 
-      .card-clickable {
+      .form-preview:hover {
+        transform: scale(1.03);
+        transition: 0.3s ease;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .clickable-card {
         cursor: pointer;
         transition: 0.3s ease;
       }
 
-      .card-clickable:hover {
+      .clickable-card:hover {
         transform: scale(1.02);
       }
 
-      .card-clickable input,
-      .card-clickable select {
+      .clickable-card input,
+      .clickable-card select {
         pointer-events: none;
         background-color: #f8f9fa;
       }
 
       .modal-content {
-        color: black;
+        color: #000;
       }
 
       .modal-body {
         max-height: 60vh;
         overflow-y: auto;
       }
+
+      .btn-hover-primary:hover {
+        background-color: #0d6efd;
+        color: #fff;
+        border-color: #0d6efd;
+        transform: scale(1.05);
+        transition: all 0.3s ease;
+      }
     </style>
   </head>
 
   <body>
-    <div class="container text-center mt-3 mb-5">
-      <h1>Hello, <%= user.firstName %>!</h1>
-      <p>Welcome to your dashboard.</p>
-      <a href="/logout" class="btn btn-light mt-3">Logout</a>
-    </div>
+    <nav
+      class="navbar navbar-expand-lg navbar-light shadow-sm mb-4 navbar-custom"
+    >
+      <div
+        class="container-fluid d-flex justify-content-between align-items-center"
+      >
+        <div class="d-flex align-items-center">
+          <a class="navbar-brand d-flex align-items-center" href="#">
+            <img
+              src="/images/logo.png"
+              alt="Logo"
+              width="60"
+              height="60"
+              class="me-2"
+            />
+            <span class="welcome-text">Hello, <%= user.firstName %>!</span>
+          </a>
+        </div>
+        <div>
+          <a
+            href="/logout"
+            class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold btn-hover-primary"
+            >Logout</a
+          >
+        </div>
+      </div>
+    </nav>
 
     <div class="container">
-      <div class="row" id="card-wrapper"></div>
+      <div class="row formsContainer" id="formsContainer"></div>
     </div>
 
-    <div id="modals-wrapper"></div>
+    <div id="modalsContainer"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-      async function loadForms() {
-        const res = await fetch("/api/forms");
-        const allForms = await res.json();
+      async function fetchForms() {
+        const response = await fetch("/api/forms");
+        const formsList = await response.json();
 
-        const cardWrapper = document.getElementById("card-wrapper");
-        const modalsWrapper = document.getElementById("modals-wrapper");
+        const formsContainer = document.getElementById("formsContainer");
+        const modalsContainer = document.getElementById("modalsContainer");
 
-        allForms.forEach((form, index) => {
-          // card view
-          const col = document.createElement("div");
-          col.className = "col-md-4 mb-4";
+        formsList.forEach((form, index) => {
+          // Create card
+          const colDiv = document.createElement("div");
+          colDiv.className = "col-md-4 mb-4";
 
-          const card = document.createElement("div");
-          card.className = "card card-clickable shadow-sm";
-          card.setAttribute("data-bs-toggle", "modal");
-          card.setAttribute("data-bs-target", `#formModal${index}`);
+          const formCard = document.createElement("div");
+          formCard.className = "card clickable-card shadow-sm";
+          formCard.setAttribute("data-bs-toggle", "modal");
+          formCard.setAttribute("data-bs-target", `#formModal${index}`);
 
           const cardBody = document.createElement("div");
           cardBody.className = "card-body";
 
-          const title = document.createElement("h5");
-          title.className = "card-title";
-          title.textContent = form.formTitle;
+          const formTitle = document.createElement("h5");
+          formTitle.className = "card-title";
+          formTitle.textContent = form.formTitle;
 
-          const preview = document.createElement("div");
-          preview.className = "form-preview";
+          const formPreview = document.createElement("div");
+          formPreview.className = "form-preview";
 
           form.formData.slice(0, 3).forEach((field) => {
-            const group = document.createElement("div");
-            group.className = "mb-2";
+            const inputGroup = document.createElement("div");
+            inputGroup.className = "mb-2";
 
-            const label = document.createElement("label");
-            label.className = "form-label";
-            label.textContent = field.question;
+            const fieldLabel = document.createElement("label");
+            fieldLabel.className = "form-label";
+            fieldLabel.textContent = field.question;
 
-            const input = document.createElement("input");
-            input.className = "form-control";
-            input.placeholder = field.placeholder;
-            input.disabled = true;
+            const fieldInput = document.createElement("input");
+            fieldInput.className = "form-control";
+            fieldInput.placeholder = field.placeholder;
+            fieldInput.disabled = true;
 
-            group.appendChild(label);
-            group.appendChild(input);
-            preview.appendChild(group);
+            inputGroup.appendChild(fieldLabel);
+            inputGroup.appendChild(fieldInput);
+            formPreview.appendChild(inputGroup);
           });
 
-          cardBody.appendChild(title);
-          cardBody.appendChild(preview);
-          card.appendChild(cardBody);
-          col.appendChild(card);
-          cardWrapper.appendChild(col);
+          cardBody.appendChild(formTitle);
+          cardBody.appendChild(formPreview);
+          formCard.appendChild(cardBody);
+          colDiv.appendChild(formCard);
+          formsContainer.appendChild(colDiv);
 
-          // modal for forms
-          const modal = document.createElement("div");
-          modal.className = "modal fade";
-          modal.id = `formModal${index}`;
-          modal.tabIndex = -1;
-          modal.innerHTML = `
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">${form.formTitle}</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                  <form id="form-${index}">
-                    ${form.formData
-                      .map((field) => {
-                        if (field.type === "dropdown" && field.options) {
-                          return `
-                          <div class="mb-3">
-                            <label class="form-label">${field.question}</label>
-                            <select class="form-control" name="${
-                              field.name
-                            }" required>
-                              ${field.options
-                                .map(
-                                  (opt) =>
-                                    `<option value="${opt}">${opt}</option>`
-                                )
-                                .join("")}
-                            </select>
-                          </div>`;
-                        } else if (field.type === "radio" && field.options) {
-                          return `
-                          <div class="mb-3">
-                            <label class="form-label d-block">${
-                              field.question
-                            }</label>
+          // Create modal
+          const modalDiv = document.createElement("div");
+          modalDiv.className = "modal fade";
+          modalDiv.id = `formModal${index}`;
+          modalDiv.tabIndex = -1;
+
+          modalDiv.innerHTML = `
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">${form.formTitle}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <form id="userForm-${index}">
+                  ${form.formData
+                    .map((field) => {
+                      if (field.type === "dropdown" && field.options) {
+                        return `
+                        <div class="mb-3">
+                          <label class="form-label">${field.question}</label>
+                          <select class="form-select" name="${
+                            field.name
+                          }" required>
                             ${field.options
                               .map(
-                                (opt) => `
-                              <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="${field.name}" id="${field.name}-${opt}" value="${opt}" required>
-                                <label class="form-check-label" for="${field.name}-${opt}">${opt}</label>
-                              </div>`
+                                (option) =>
+                                  `<option value="${option}">${option}</option>`
                               )
                               .join("")}
-                          </div>`;
-                        } else {
-                          return `
-                          <div class="mb-3">
-                            <label class="form-label">${field.question}</label>
-                            <input type="text" class="form-control" name="${
-                              field.name
-                            }" placeholder="${field.placeholder}" ${
-                            field.validation?.includes("required")
-                              ? "required"
-                              : ""
-                          } />
-                          </div>`;
-                        }
-                      })
-                      .join("")}
-                    <button type="submit" class="btn btn-primary w-100">Submit</button>
-                  </form>
-                </div>
+                          </select>
+                        </div>`;
+                      } else if (field.type === "radio" && field.options) {
+                        return `
+                        <div class="mb-3">
+                          <label class="form-label d-block">${
+                            field.question
+                          }</label>
+                          ${field.options
+                            .map(
+                              (option) => `
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio" name="${field.name}" id="${field.name}-${option}" value="${option}" required>
+                              <label class="form-check-label" for="${field.name}-${option}">${option}</label>
+                            </div>`
+                            )
+                            .join("")}
+                        </div>`;
+                      } else {
+                        return `
+                        <div class="mb-3">
+                          <label class="form-label">${field.question}</label>
+                          <input type="text" class="form-control" name="${
+                            field.name
+                          }" placeholder="${field.placeholder}" ${
+                          field.validation?.includes("required")
+                            ? "required"
+                            : ""
+                        }>
+                        </div>`;
+                      }
+                    })
+                    .join("")}
+                  <button type="submit" class="btn btn-primary w-100">Submit</button>
+                </form>
               </div>
-            </div>`;
+            </div>
+          </div>
+        `;
 
-          modalsWrapper.appendChild(modal);
+          modalsContainer.appendChild(modalDiv);
 
-          // data to db
+          // Handle form submission
           setTimeout(() => {
-            const formEl = document.getElementById(`form-${index}`);
-            formEl.addEventListener("submit", async (e) => {
-              e.preventDefault();
+            const userForm = document.getElementById(`userForm-${index}`);
+            userForm.addEventListener("submit", async (event) => {
+              event.preventDefault();
 
-              const formData = new FormData(formEl);
-              const answers = Object.fromEntries(formData.entries());
+              const formData = new FormData(userForm);
+              const formEntries = Object.fromEntries(formData.entries());
 
               try {
-                const response = await fetch("/submit-form", {
+                const submitResponse = await fetch("/submit-form", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -205,28 +257,30 @@
                   body: JSON.stringify({
                     formId: form._id,
                     formTitle: form.formTitle,
-                    answers: answers,
+                    answers: formEntries,
                   }),
                 });
 
-                const result = await response.json();
+                const result = await submitResponse.json();
 
-                if (response.ok) {
-                  alert(`Form "${form.formTitle}" submitted successfully!`);
+                if (submitResponse.ok) {
+                  alert(`"${form.formTitle}" submitted successfully!`);
                   window.location.href = "/dashboard";
                 } else {
-                  throw new Error(result.message || "Failed to submit form");
+                  throw new Error(result.message || "Form submission failed.");
                 }
-              } catch (error) {
-                console.error("Error submitting form:", error);
-                alert("Failed to submit the form. Please try again.");
+              } catch (err) {
+                console.error("Error submitting form:", err);
+                alert(
+                  "There was a problem submitting the form. Please try again."
+                );
               }
             });
           }, 0);
         });
       }
 
-      loadForms();
+      fetchForms();
     </script>
   </body>
 </html>

@@ -61,12 +61,10 @@
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
       <li class="nav-item active">
-        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="admin.html">Home</a>
       </li>
 
-      <li class="nav-item">
-        <a class="nav-link" href="userlist.html">Userlist</a>
-      </li>
+      
     </ul>
   </div>
 </nav>
@@ -90,45 +88,45 @@
 
 <script>
   function getResponses() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const formId = urlParams.get('formId');
+  const urlParams = new URLSearchParams(window.location.search);
+  const formId = urlParams.get('formId');
 
-    fetch(`/responses/${formId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("User Responses:", data);
+  fetch(`/responses/${formId}`)
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("User Responses:", data);
 
-        if (data.length === 0) {
-          document.getElementById('responseTable').innerHTML = `<tr><td colspan="100%" class="text-center">No responses yet.</td></tr>`;
-          return;
-        }
+      if (data.length === 0) {
+        document.getElementById('responseTable').innerHTML = `<tr><td colspan="100%" class="text-center">No responses yet.</td></tr>`;
+        return;
+      }
 
-        const firstResponse = data[0];
-        const answerKeys = Object.keys(firstResponse.answers);
+      const firstResponse = data[0];
+      const answerKeys = Object.keys(firstResponse.answers);
 
-        // Set up table header
-        let headers = `<th>#</th>`;
+      let headers = `<th>#</th><th>Email</th>`;
+      answerKeys.forEach(key => {
+        headers += `<th>${key}</th>`;
+      });
+      document.getElementById('tableHead').innerHTML = headers;
+
+      let rows = "";
+      data.forEach((submission, index) => {
+        rows += `<tr>
+                  <td>${index + 1}</td>
+                  <td>${submission.email}</td>`;
+
         answerKeys.forEach(key => {
-          headers += `<th>${key}</th>`;
-        });
-        document.getElementById('tableHead').innerHTML = headers;
-
-        // Set up table body
-        let rows = "";
-        data.forEach((submission, index) => {
-          rows += `<tr><td>${index + 1}</td>`;
-
-          answerKeys.forEach(key => {
-            rows += `<td>${submission.answers[key] || '-'}</td>`;
-          });
-
-          rows += `</tr>`;
+          rows += `<td>${submission.answers[key] || '-'}</td>`;
         });
 
-        document.getElementById('responseTable').innerHTML = rows;
-      })
-      .catch((err) => console.error("Error fetching responses:", err));
-  }
+        rows += `</tr>`;
+      });
+
+      document.getElementById('responseTable').innerHTML = rows;
+    })
+    .catch((err) => console.error("Error fetching responses:", err));
+}
 
   getResponses();
 </script>

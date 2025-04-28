@@ -1,77 +1,51 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
 const cors = require("cors");
-const config = require("./config.json");
 const bcrypt = require("bcryptjs");
 const session = require("express-session");
-const User = require("./models/User");
 const path = require("path");
-const { error } = require("console");
-const { type } = require("os");
+const config = require("./config.json");
+
+
+const User = require("./models/User");
+const Form = require("./models/Form");
+const UserAnswer = require("./models/UserAnswer");
 
 const app = express();
 
+// Middleware
 app.use(express.static("public"));
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
-// let url = `mongodb+srv://${config.username}:${config.userpassword}@${config.dbname}.${config.userstring}.mongodb.net/${config.dbname}?retryWrites=true&w=majority&appName=Valtech`;
-// let url = `mongodb+srv://sakshisukhani26:sakshi2601@valtech.j2mb7h2.mongodb.net/adminDB?retryWrites=true&w=majority&appName=valtech`;
-
-let url = `mongodb+srv://aesha:valtechdb@valtechpracticedb.zhyompe.mongodb.net/formDB?retryWrites=true&w=majority&appName=valtechpracticedb`;
-
-
-
-mongoose
-  .connect(url)
-  .then(() => console.log("DB Connected"))
-  .catch((error) => console.log("Error", error));
-
-let PORT = config.port;
-
 app.use(
   session({
-    secret: "your_secret_key_here",
+    secret: "ydckyghvgjhvgudutrswyer5td74e56dfuvjl",
     resave: false,
     saveUninitialized: false,
   })
 );
 
-let Schema = mongoose.Schema;
+// Database connection
+// let url = `mongodb+srv://${config.username}:${config.userpassword}@${config.dbname}.${config.userstring}.mongodb.net/${config.dbname}?retryWrites=true&w=majority&appName=Valtech`;
+let url = `mongodb+srv://sakshisukhani26:sakshi2601@valtech.j2mb7h2.mongodb.net/adminDB?retryWrites=true&w=majority&appName=valtech`;
 
-const FormFieldSchema = new Schema({
-  question: { type: String, required: false },
-  type: { type: String, required: false },
-  name: { type: String, required: false },
-  id: { type: String, required: false },
-  placeholder: { type: String, required: false },
-  validation: { type: String, required: false },
-  options: { type: [String], default: [] },
-});
 
-const FormSchema = new Schema({
-  formTitle: { type: String, required: true },
-  fieldCount: { type: Number, required: true },
-  formData: [FormFieldSchema],
-});
+mongoose
+  .connect(url)
+  .then(() => console.log("Database Connected"))
+  .catch((err) => console.error("Database Connection Error:", err));
 
-const UserFormData = new Schema({
-  formId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "Form" },
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
-  formTitle: { type: String, required: true },
-  answers: { type: Map, of: Schema.Types.Mixed, required: true },
-});
+// Routes
 
-const Form = mongoose.model("Form", FormSchema);
-const UserAnswer = mongoose.model("UserAnswer", UserFormData);
-
+// Home Page
 app.get("/", (req, res) => {
-  res.render("index", { user: req.session.user , message: null});
+  res.render("index", { user: req.session.user, message: null });
 });
 
+// Signup
 app.post("/signup", async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
 
@@ -88,13 +62,15 @@ app.post("/signup", async (req, res) => {
       email,
       password: hashedPassword,
     });
+
     await user.save();
 
     req.session.user = user;
-    if (req.session.user.email === "admin@gmail.com") {
-      res.redirect("/admin");
+
+    if (user.email === "admin@gmail.com") {
+      return res.redirect("/admin");
     } else {
-      res.redirect("/dashboard");
+      return res.redirect("/dashboard");
     }
   } catch (err) {
     console.error(err);
@@ -102,6 +78,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+// Login
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -117,10 +94,11 @@ app.post("/login", async (req, res) => {
     }
 
     req.session.user = user;
-    if (req.session.user.email === "admin@gmail.com") {
-      res.redirect("/admin");
+
+    if (user.email === "admin@gmail.com") {
+      return res.redirect("/admin");
     } else {
-      res.redirect("/dashboard");
+      return res.redirect("/dashboard");
     }
   } catch (err) {
     console.error(err);
@@ -128,129 +106,148 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// Logout
 app.get("/logout", (req, res) => {
   req.session.destroy(() => {
     res.redirect("/");
   });
 });
 
+// Dashboard
 app.get("/dashboard", (req, res) => {
   if (!req.session.user) return res.redirect("/");
+
   if (req.session.user.email === "admin@gmail.com") {
-    res.redirect("/admin");
-  } else {
-    res.render("dashboard", { user: req.session.user });
+    return res.redirect("/admin");
   }
+
+  res.render("dashboard", { user: req.session.user });
 });
 
+// Fetch All Forms
 app.get("/api/forms", async (req, res) => {
   try {
-    const allForms = await Form.find();
-    res.json(allForms);
-  } catch (error) {
-    console.error(error);
+    const forms = await Form.find();
+    res.json(forms);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Error fetching forms" });
   }
 });
 
+// Submit Form
 app.post("/submit-form", async (req, res) => {
   const { formId, formTitle, answers } = req.body;
-  const userId = req.session.user?._id || null;
+  const userId = req.session.user?._id;
 
-  const formSubmission = new UserAnswer({
-    formId: formId,
-    userId: userId,
-    formTitle: formTitle,
-    answers: answers,
-  });
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized. Please login first." });
+  }
 
-  formSubmission
-    .save()
-    .then((result) => {
-      console.log("Form submiited");
-      res.status(200).json({ message: "Form submitted successfully" });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).json({ message: "Error submitting form", error });
+  try {
+    const formSubmission = new UserAnswer({
+      formId,
+      userId,
+      formTitle,
+      answers,
     });
+
+    await formSubmission.save();
+
+    console.log("Form submitted successfully");
+    res.status(200).json({ message: "Form submitted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error submitting form", error: err });
+  }
 });
 
-
-// admin section
+// Admin Routes
 app.get("/admin", (req, res) => {
   if (!req.session.user) return res.redirect("/");
-  if (req.session.user.email !== "admin@gmail.com")
-    return res.redirect("/dashboard");
-  res.sendFile(path.join(__dirname, "/public", "/admin.html"));
+  if (req.session.user.email !== "admin@gmail.com") return res.redirect("/dashboard");
+
+  res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
 
-app.post("/admin/formData", (req, res) => {
-  console.log("Received form data:", req.body);
-
+// Save Form Data
+app.post("/admin/formData", async (req, res) => {
   const { formTitle, fieldCount, formData } = req.body;
 
   if (!formTitle || !formData || formData.length === 0) {
-    return res.status(400).json({ message: "Form title or data is missing" });
+    return res.status(400).json({ message: "Form title or form data missing" });
   }
 
-  const form = new Form({
-    formTitle: formTitle,
-    fieldCount: fieldCount,
-    formData: formData,
-  });
-
-  form
-    .save()
-    .then((result) => {
-      console.log("Form data saved to MongoDB:", result);
-      res.status(200).json({ message: "Form data saved successfully", result });
-    })
-    .catch((error) => {
-      console.error("Error saving data to MongoDB:", error);
-      res.status(500).json({ message: "Error saving data", error });
-    });
-});
-
-app.get("/form", (req, res) => {
-  res.sendFile(__dirname + "/public/formBuilder.html");
-});
-
-app.get('/fdata',(req,res) => {
-  Form.find()
-  .then((dbRes) => {
-      res.json(dbRes)
-  })
-  .catch((error) => console.log("Error"+error));
-});
-
-app.delete("/dform/:id", (req,res) => {
-  const {id} = req.params;
-  console.log("uid",id);
-  
-  Form.findByIdAndDelete(id)
-  .then((dbres) => {
-      res.send({message: "form was deleted", name: dbres.formTitle});
-  })
-  .catch((error) => console.log("Error",error));
-});
-
-
-app.get('/responses/:formId', async (req, res) => {
   try {
-      const formId = req.params.formId;
-      console.log("Getting responses for form:", formId);
-      const submissions = await UserAnswer.find({ formId: formId });
+    const form = new Form({ formTitle, fieldCount, formData });
+    const savedForm = await form.save();
 
-      res.json(submissions);
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Server Error" });
+    console.log("Form saved to database");
+    res.status(200).json({ message: "Form saved successfully", savedForm });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error saving form", error: err });
   }
 });
 
+// Serve Form Builder Page
+app.get("/form", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "formBuilder.html"));
+});
 
+// Fetch Form Data (for Admin Dashboard)
+app.get("/fdata", async (req, res) => {
+  try {
+    const forms = await Form.find();
+    res.json(forms);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching forms" });
+  }
+});
 
+// Delete a Form
+app.delete("/dform/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedForm = await Form.findByIdAndDelete(id);
+
+    if (!deletedForm) {
+      return res.status(404).json({ message: "Form not found" });
+    }
+
+    res.json({ message: "Form deleted", name: deletedForm.formTitle });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error deleting form", error: err });
+  }
+});
+
+// Get all submissions for a Form
+ 
+app.get('/responses/:formId', async (req, res) => {
+  const formId = req.params.formId;
+  try {
+    const responses = await UserAnswer.find({ formId }).lean(); 
+    const fullResponses = await Promise.all(responses.map(async (response) => {
+      const user = await User.findById(response.userId).lean();
+      return {
+        email: user ? user.email : "Unknown Email",
+        answers: response.answers
+      };
+    }));
+    res.json(fullResponses);
+  } catch (err) {
+    console.error("Error while fetching responses:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+ 
+
+// Server Listening
+const PORT = config.port || 3000;
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
+ 
